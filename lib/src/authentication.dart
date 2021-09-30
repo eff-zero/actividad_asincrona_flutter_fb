@@ -165,7 +165,7 @@ class _EmailFormState extends State<EmailForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Header('Sign in with email'),
+        const Header('Iniciar con e-mail'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
@@ -178,11 +178,11 @@ class _EmailFormState extends State<EmailForm> {
                   child: TextFormField(
                     controller: _controller,
                     decoration: const InputDecoration(
-                      hintText: 'Enter your email',
+                      hintText: 'Ingrese su correo',
                     ),
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Enter your email address to continue';
+                        return 'Ingrese su correo para continuar';
                       }
                       return null;
                     },
@@ -200,7 +200,7 @@ class _EmailFormState extends State<EmailForm> {
                             widget.callback(_controller.text);
                           }
                         },
-                        child: const Text('NEXT'),
+                        child: const Text('SIGUIENTE'),
                       ),
                     ),
                   ],
@@ -359,7 +359,7 @@ class _PasswordFormState extends State<PasswordForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Header('Sign in'),
+        const Header('Iniciar Sesión'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
