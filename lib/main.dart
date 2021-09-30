@@ -85,6 +85,7 @@ class HomePage extends StatelessWidget {
                   GuestBook(
                     addMessage: (message) =>
                         appState.addMessageToGuestBook(message),
+                    messages: appState.guestBookMessages, // new
                   ),
                 ],
               ],
@@ -107,8 +108,27 @@ class ApplicationState extends ChangeNotifier {
     FirebaseAuth.instance.userChanges().listen((user) {
       if (user != null) {
         _loginState = ApplicationLoginState.loggedIn;
+        _guestBookSubscription = FirebaseFirestore.instance
+            .collection('guestbook')
+            .orderBy('timestamp', descending: true)
+            .limit(100) // Limite de mensajes
+            .snapshots()
+            .listen((snapshot) {
+          _guestBookMessages = [];
+          snapshot.docs.forEach((document) {
+            _guestBookMessages.add(
+              GuestBookMessage(
+                name: document.data()['name'].toString(), // Dynamic a String
+                message: document.data()['text'].toString(), // Dynamic a String
+              ),
+            );
+          });
+          notifyListeners();
+        });
       } else {
         _loginState = ApplicationLoginState.loggedOut;
+        _guestBookMessages = [];
+        _guestBookSubscription?.cancel();
       }
       notifyListeners();
     });
@@ -129,6 +149,10 @@ class ApplicationState extends ChangeNotifier {
 
   ApplicationLoginState _loginState = ApplicationLoginState.loggedOut;
   ApplicationLoginState get loginState => _loginState;
+
+  StreamSubscription<QuerySnapshot>? _guestBookSubscription;
+  List<GuestBookMessage> _guestBookMessages = [];
+  List<GuestBookMessage> get guestBookMessages => _guestBookMessages;
 
   String? _email;
   String? get email => _email;
@@ -193,9 +217,16 @@ class ApplicationState extends ChangeNotifier {
   }
 }
 
+class GuestBookMessage {
+  GuestBookMessage({required this.name, required this.message});
+  final String name;
+  final String message;
+}
+
 class GuestBook extends StatefulWidget {
-  GuestBook({required this.addMessage});
+  const GuestBook({required this.addMessage, required this.messages});
   final FutureOr<void> Function(String message) addMessage;
+  final List<GuestBookMessage> messages; // new
 
   @override
   _GuestBookState createState() => _GuestBookState();
@@ -207,7 +238,10 @@ class _GuestBookState extends State<GuestBook> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+    Padding(
       padding: const EdgeInsets.all(8.0),
       child: Form(
         key: _formKey,
@@ -246,6 +280,12 @@ class _GuestBookState extends State<GuestBook> {
           ],
         ),
       ),
+    ),
+    const SizedBox(height: 8),
+      for (var message in widget.messages)
+        Paragraph('${message.name}: ${message.message}'),
+    const SizedBox(height: 8),
+      ],
     );
   }
 }
